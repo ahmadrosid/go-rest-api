@@ -21,3 +21,5 @@ Compile and run :
 go build
 ./go-rest-api
 ```
+
+Test the endpoint on sample url [here](https://github.com/ahmadrosid/go-rest-api/blob/master/curls.md)
