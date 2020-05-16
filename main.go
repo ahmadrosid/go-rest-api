@@ -34,8 +34,6 @@ func (product Product) JSONAPILinks() *jsonapi.Links {
 }
 
 func BrowseProduct(res http.ResponseWriter, _ *http.Request) {
-	defer mysqlDB.Close()
-
 	rows, err := mysqlDB.Query("SELECT id, name, price FROM products")
 	checkError(err)
 
@@ -53,7 +51,6 @@ func BrowseProduct(res http.ResponseWriter, _ *http.Request) {
 
 func CreateProduct(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", jsonapi.MediaType)
-	defer mysqlDB.Close()
 
 	var product Product
 	err := jsonapi.UnmarshalPayload(req.Body, &product)
@@ -82,8 +79,6 @@ func CreateProduct(res http.ResponseWriter, req *http.Request) {
 func DeleteProduct(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 	productID := mux.Vars(req)["id"]
-
-	defer mysqlDB.Close()
 
 	result, err := mysqlDB.Exec("DELETE FROM products WHERE id = ?", productID)
 	checkError(err)
@@ -115,8 +110,6 @@ func UpdateProduct(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	defer mysqlDB.Close()
-
 	query, err := mysqlDB.Prepare("UPDATE products SET name = ?, price = ? WHERE id = ?")
 	query.Exec(product.Name, product.Price, productID)
 	checkError(err)
@@ -127,8 +120,6 @@ func UpdateProduct(res http.ResponseWriter, req *http.Request) {
 
 func ShowProduct(res http.ResponseWriter, req *http.Request) {
 	productID := mux.Vars(req)["id"]
-
-	defer mysqlDB.Close()
 
 	query, err := mysqlDB.Query("SELECT id, name, price FROM products WHERE id = " + productID)
 	checkError(err)
@@ -144,6 +135,8 @@ func ShowProduct(res http.ResponseWriter, req *http.Request) {
 
 func main() {
 	mysqlDB = connect()
+	defer mysqlDB.Close()
+
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/api/products", BrowseProduct).Methods("GET")
 	router.HandleFunc("/api/products", CreateProduct).Methods("POST")
